@@ -7,7 +7,7 @@
 
 **Skill Exchange** is a high-performance, single-page Learning Management System (LMS) designed to deliver interactive technical education without the need for a complex backend. 
 
-🔗 **[Click here to view the Live Demo on Vercel]**(https://skill-exchange-platform-rouge.vercel.app/)
+🔗https://skill-exchange-platform-rouge.vercel.app/
 
 ## ✨ Core Features
 
