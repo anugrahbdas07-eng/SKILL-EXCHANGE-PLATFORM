@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C Programming | Skill Exchange</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0b0f19; min-height: 100vh; color: white; overflow-x: hidden; display: flex; flex-direction: column; }
+        
+        /* The Live Background */
+        .live-bg-shape { position: fixed; border-radius: 50%; filter: blur(90px); z-index: -1; animation: floatShape 12s infinite ease-in-out; }
+        .shape-1 { width: 500px; height: 500px; background: #ff007a; top: -100px; left: -100px; }
+        .shape-2 { width: 600px; height: 600px; background: #00e5ff; bottom: -200px; right: -100px; animation-delay: -4s; }
+
+        @keyframes floatShape { 0%, 100% { transform: translateY(0) scale(1) translateX(0); } 50% { transform: translateY(-80px) scale(1.1) translateX(40px); } }
+        
+        /* Navigation */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .back-btn { padding: 10px 20px; border-radius: 20px; border: 1px solid #00e5ff; background: transparent; color: #00e5ff; font-weight: bold; cursor: pointer; transition: 0.3s; text-decoration: none; }
+        .back-btn:hover { background: #00e5ff; color: #0b0f19; }
+        
+        /* Split Screen Layout */
+        .course-container { display: flex; flex: 1; padding: 20px; gap: 20px; height: calc(100vh - 70px); }
+        
+        /* Left Side: Interactive Lessons */
+        .lesson-panel { flex: 1; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 30px; display: flex; flex-direction: column; overflow-y: auto; }
+        .lesson-panel h2 { font-size: 2rem; color: #00e5ff; margin-bottom: 15px; }
+        .lesson-panel p { font-size: 1.1rem; line-height: 1.6; color: #e0e0e0; margin-bottom: 20px; }
+        .lesson-panel code { background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px; color: #ff007a; font-family: monospace; font-size: 1.1rem; }
+        
+        .lesson-controls { margin-top: auto; display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .nav-btn { padding: 10px 25px; border-radius: 10px; border: none; background: #7a00ff; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .nav-btn:hover { background: #9d4edd; transform: translateY(-2px); }
+        .nav-btn:disabled { background: #333; cursor: not-allowed; transform: none; }
+
+        /* Right Side: Live Code Editor */
+        .compiler-panel { flex: 1.5; background: #1e1e1e; border-radius: 15px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <div class="live-bg-shape shape-1"></div>
+    <div class="live-bg-shape shape-2"></div>
+
+    <nav>
+        <h2 style="color: white; font-size: 1.5rem;">⚙️ Problem Solving in C</h2>
+        <a href="index.html" class="back-btn">← Back to Hub</a>
+    </nav>
+
+    <div class="course-container">
+        
+        <div class="lesson-panel">
+            <h2 id="lesson-title">Lesson 1: Hello, World!</h2>
+            <div id="lesson-content">
+                <p>Welcome to the C Programming environment! Every C program begins executing at the <code>main()</code> function.</p>
+                <p>To print text to the screen, we use the <code>printf()</code> function, which is included in the standard input/output library.</p>
+                <p><strong>Your Task:</strong> Look at the code editor on the right. The basic structure is already there. Click the <strong>Run</strong> button inside the editor to see the output below it!</p>
+            </div>
+            
+            <div class="lesson-controls">
+                <button class="nav-btn" id="prev-btn" onclick="changeLesson(-1)" disabled>Previous</button>
+                <button class="nav-btn" id="next-btn" onclick="changeLesson(1)">Next Lesson</button>
+            </div>
+        </div>
+
+        <div class="compiler-panel">
+            <iframe src="https://onecompiler.com/c" title="C Compiler"></iframe>
+        </div>
+
+    </div>
+
+    <script>
+        // Array holding all the lesson data
+        const lessons = [
+            {
+                title: "Lesson 1: Hello, World!",
+                content: "<p>Welcome to the C Programming environment! Every C program begins executing at the <code>main()</code> function.</p><p>To print text to the screen, we use the <code>printf()</code> function, which is included in the standard input/output library.</p><p><strong>Your Task:</strong> Look at the code editor on the right. Click the <strong>Run</strong> button to see the output!</p>"
+            },
+            {
+                title: "Lesson 2: Variables & Types",
+                content: "<p>To solve problems, we need to store data using variables.</p><p>In C, you must declare the <em>type</em> of data. Try replacing the code on the right with this:</p><p><br><code>int myScore = 95;</code><br><code>printf(\"Exam Score: %d\", myScore);</code></p><p><br>Practice formatting different data types to prepare for quizzes!</p>"
+            },
+            {
+                title: "Lesson 3: Math Operations",
+                content: "<p>C is great at math. You can use standard operators like <code>+</code>, <code>-</code>, <code>*</code>, and <code>/</code>.</p><p>Try writing a small program on the right that adds two numbers together and prints the sum.</p>"
+            }
+        ];
+
+        let currentLesson = 0;
+
+        function changeLesson(direction) {
+            currentLesson += direction;
+            
+            // Update the text on the screen
+            document.getElementById('lesson-title').innerText = lessons[currentLesson].title;
+            document.getElementById('lesson-content').innerHTML = lessons[currentLesson].content;
+            
+            // Turn buttons on or off depending on which lesson we are on
+            document.getElementById('prev-btn').disabled = (currentLesson === 0);
+            document.getElementById('next-btn').disabled = (currentLesson === lessons.length - 1);
+        }
+    </script>
+</body>
+</html>

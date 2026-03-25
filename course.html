@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Area - Skill Exchange</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* EXTRA COLORFUL STYLES FOR THE CLASSROOM */
+        .dynamic-header {
+            background: linear-gradient(to right, #00f2fe, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        #lessonContent {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        /* Neon Glow for the active sidebar step */
+        .step-card.active {
+            background: rgba(35, 213, 171, 0.2) !important;
+            border-left: 5px solid #23d5ab !important;
+            box-shadow: 0 0 15px rgba(35, 213, 171, 0.4);
+            color: #23d5ab;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="course-workspace">
+        
+        <div class="course-sidebar">
+            <h3 style="margin-bottom: 20px; color: #a777e3; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px;">Course Outline</h3>
+            
+            <div id="sidebarSteps">
+                </div>
+            
+            <a href="search.html" style="display: inline-block; margin-top: 30px; padding: 10px 15px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #ff9a9e; text-decoration: none; width: 100%; text-align: center; transition: 0.3s;">← Back to Search</a>
+        </div>
+
+        <div class="course-main">
+            
+            <div class="course-theory">
+                <h2 id="courseTitle" class="dynamic-header">Loading Course...</h2>
+                <h3 id="lessonTitle" style="color: #23d5ab; margin-bottom: 15px;">...</h3>
+                <div id="lessonContent">Please wait while the course materials load.</div>
+            </div>
+
+            <div class="code-editor-container">
+                <iframe id="compilerFrame" src="" title="Live Compiler"></iframe>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

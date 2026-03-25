@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Exchange | Professional LMS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #0b0f19; color: white; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: #00e5ff; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #7a00ff; }
+        .live-bg-shape { position: fixed; border-radius: 50%; filter: blur(90px); z-index: -1; animation: floatShape 15s infinite ease-in-out; }
+        .shape-1 { width: 500px; height: 500px; background: #ff007a; top: -100px; left: -100px; }
+        .shape-2 { width: 600px; height: 600px; background: #00e5ff; bottom: -200px; right: -100px; animation-delay: -5s; }
+        @keyframes floatShape { 0%, 100% { transform: translateY(0) scale(1) translateX(0); } 50% { transform: translateY(-80px) scale(1.1) translateX(40px); } }
+
+        .btn { padding: 12px 25px; border-radius: 30px; border: none; background: linear-gradient(45deg, #00e5ff, #7a00ff); color: white; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 1rem; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2); }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 229, 255, 0.5); }
+        
+        .screen { display: none; flex-direction: column; height: 100%; width: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; padding: 30px; }
+        .active-screen { display: flex; z-index: 10; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #login-screen, #add-skill-screen { justify-content: center; align-items: center; text-align: center; }
+        .glass-panel { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .glass-panel input, .glass-panel textarea { width: 100%; padding: 15px; margin: 20px 0; border-radius: 10px; border: none; background: rgba(0,0,0,0.5); color: white; font-size: 1.1rem; outline: none; transition: 0.3s; border: 1px solid transparent; }
+        .glass-panel textarea { resize: vertical; min-height: 120px; }
+        .glass-panel input:focus, .glass-panel textarea:focus { border: 1px solid #00e5ff; }
+
+        header { text-align: center; margin-bottom: 40px; }
+        
+        .search-wrapper { position: relative; max-width: 700px; margin: 0 auto 50px; }
+        .search-wrapper input { width: 100%; padding: 20px 30px; border-radius: 40px; border: 2px solid rgba(0,229,255,0.3); background: rgba(0,0,0,0.7); color: white; font-size: 1.2rem; outline: none; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .search-wrapper input:focus { border-color: #00e5ff; box-shadow: 0 0 20px rgba(0,229,255,0.4); }
+        .search-dropdown { display: none; position: absolute; top: 110%; left: 0; width: 100%; background: #1a1f2b; border: 1px solid rgba(0,229,255,0.3); border-radius: 15px; overflow: hidden; z-index: 100; box-shadow: 0 15px 40px rgba(0,0,0,0.9); }
+        .dropdown-item { padding: 15px 25px; cursor: pointer; transition: 0.2s; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 15px; }
+        .dropdown-item:hover { background: rgba(0,229,255,0.15); padding-left: 35px; border-left: 4px solid #00e5ff; }
+
+        .course-grid { display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
+        .course-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(16px); padding: 30px; border-radius: 20px; width: 280px; text-align: center; cursor: pointer; transition: 0.4s; border: 1px solid rgba(255,255,255,0.1); }
+        .course-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.1); border-color: #00e5ff; box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(0,0,0,0.4); padding: 15px 30px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.05); }
+        .progress-container { flex-grow: 1; margin: 0 30px; background: rgba(255,255,255,0.1); height: 12px; border-radius: 10px; overflow: hidden; position: relative; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, #00e5ff, #7a00ff); width: 0%; transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        
+        .workspace { display: flex; gap: 20px; flex: 1; min-height: 0; }
+        .lesson-panel { flex: 1; background: rgba(0,0,0,0.6); padding: 35px; border-radius: 15px; overflow-y: auto; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.05); }
+        .lesson-panel h2 { color: #00e5ff; margin-bottom: 20px; font-size: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .lesson-panel p, .lesson-panel ul { font-size: 1.1rem; line-height: 1.7; color: #d1d5db; margin-bottom: 15px; }
+        .lesson-panel code { background: #1f2937; padding: 3px 8px; border-radius: 6px; color: #ff79c6; font-family: monospace; font-size: 1.05rem; }
+        .compiler-panel { flex: 1.5; background: #1e1e1e; border-radius: 15px; overflow: hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.9); border: 1px solid rgba(255,255,255,0.1); }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        #quiz-screen { justify-content: flex-start; align-items: center; padding-top: 60px; padding-bottom: 60px; }
+        .quiz-container { width: 800px; max-width: 90%; margin-bottom: 40px; }
+        .question-block { margin-bottom: 25px; background: rgba(0,0,0,0.4); padding: 25px; border-radius: 15px; border-left: 5px solid transparent; transition: 0.3s; }
+        .option-label { display: block; padding: 12px 15px; background: rgba(255,255,255,0.05); margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .option-label:hover { background: rgba(255,255,255,0.1); border-color: rgba(0,229,255,0.5); }
+        
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11,15,25,0.95); z-index: 100; justify-content: center; align-items: center; flex-direction: column; text-align: center; }
+        .success-box { background: rgba(255,255,255,0.05); padding: 60px; border-radius: 30px; border: 1px solid #00e5ff; box-shadow: 0 0 60px rgba(0,229,255,0.15); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .trophy { font-size: 6rem; margin-bottom: 20px; animation: bounce 2s infinite; }
+        
+        .certificate { background: #fff; color: #111; width: 800px; padding: 60px; text-align: center; border: 15px solid #0b0f19; border-radius: 10px; outline: 5px solid #d4af37; outline-offset: -10px; }
+        .student-name { font-size: 4rem; font-family: 'Brush Script MT', cursive; color: #0b0f19; margin: 20px 0; border-bottom: 2px solid #333; display: inline-block; padding: 0 40px; }
+        
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-30px); } 60% { transform: translateY(-15px); } }
+    </style>
+</head>
+<body>
+    <div class="live-bg-shape shape-1"></div>
+    <div class="live-bg-shape shape-2"></div>
+
+    <div id="login-screen" class="screen active-screen">
+        <div class="glass-panel" style="width: 450px;">
+            <h1 style="margin-bottom: 10px; font-size: 2.5rem; background: linear-gradient(45deg, #00e5ff, #ff007a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Skill Exchange</h1>
+            <p style="color: #aaa;">Enter your full name to generate your profile.</p>
+            <input type="text" id="username" placeholder="e.g. Student Name" onkeypress="if(event.key === 'Enter') login()">
+            <button class="btn" style="width: 100%; padding: 15px;" onclick="login()">Enter Platform</button>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="screen">
+        <header>
+            <h1>Welcome to the Hub, <span id="display-name" style="color:#00e5ff;">Student</span>!</h1>
+            <p style="font-size: 1.2rem; margin-top: 10px; color: #ccc;">Search over 10+ professional skills or select a featured track below.</p>
+            
+            <button class="btn" style="background: transparent; border: 2px solid #ff007a; margin-top: 20px;" onclick="showScreen('add-skill-screen')">➕ Share Your Skills</button>
+        </header>
+
+        <div class="search-wrapper">
+            <input type="text" id="search-input" placeholder="🔍 Search for Python, Web Design, Data Science..." oninput="showSuggestions()" autocomplete="off">
+            <div id="search-dropdown" class="search-dropdown"></div>
+        </div>
+
+        <div class="course-grid">
+            <div class="course-card" onclick="startCourse('c_program')">
+                <div style="font-size: 4rem; margin-bottom: 15px;">⚙️</div>
+                <h2>Problem Solving in C</h2>
+                <p style="margin-top: 10px; color: #aaa;">5 Modules. Drill core logic and memory management.</p>
+            </div>
+            <div class="course-card" onclick="startCourse('python_basics')">
+                <div style="font-size: 4rem; margin-bottom: 15px;">🐍</div>
+                <h2>Python Masterclass</h2>
+                <p style="margin-top: 10px; color: #aaa;">5 Modules. Syntax, data structures, and automation.</p>
+            </div>
+            <div class="course-card" onclick="startCourse('web_design')">
+                <div style="font-size: 4rem; margin-bottom: 15px;">💻</div>
+                <h2>Web Development</h2>
+                <p style="margin-top: 10px; color: #aaa;">Build a modern FitQuest platform layout.</p>
+            </div>
+            <div class="course-card" onclick="startCourse('image_editing')">
+                <div style="font-size: 4rem; margin-bottom: 15px;">🎨</div>
+                <h2>Graphic Design</h2>
+                <p style="margin-top: 10px; color: #aaa;">Live Photopea integration. Master layers.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-skill-screen" class="screen">
+        <button class="btn" style="position: absolute; top: 30px; left: 30px; background: transparent; border: 1px solid #00e5ff;" onclick="showScreen('dashboard-screen')">← Back to Hub</button>
+        <div class="glass-panel" style="width: 650px; max-width: 90%;">
+            <div style="font-size: 4rem; margin-bottom: 10px;">🤝</div>
+            <h1 style="color: #00e5ff; margin-bottom: 10px;">Become an Instructor</h1>
+            <p style="color: #aaa; margin-bottom: 25px; font-size: 1.1rem;">As a Skill Exchange member, you can teach what you know. Propose a new course module below.</p>
+            
+            <input type="text" id="skill-title" placeholder="Course Title (e.g., Advanced Video Editing)">
+            <input type="text" id="skill-category" placeholder="Category (e.g., Media Production)">
+            <textarea id="skill-desc" placeholder="Briefly describe the core concepts you will teach in this module..."></textarea>
+            
+            <button class="btn" style="width: 100%; padding: 15px; margin-top: 10px; font-size: 1.1rem;" onclick="submitNewSkill()">Submit Course for Review</button>
+        </div>
+    </div>
+
+    <div id="skill-success-overlay" class="overlay">
+        <div class="success-box">
+            <div class="trophy" style="animation: none;">🌟</div>
+            <h1 style="color: #00e5ff; font-size: 3rem; margin-bottom: 15px;">Proposal Submitted!</h1>
+            <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 30px;">Thank you for contributing to the Skill Exchange community. Your course is under review.</p>
+            <button class="btn" style="font-size: 1.2rem; padding: 15px 40px;" onclick="closeSkillSuccess()">Return to Dashboard</button>
+        </div>
+    </div>
+
+    <div id="workspace-screen" class="screen">
+        <div class="top-bar">
+            <button class="btn" style="background: transparent; border: 1px solid #00e5ff;" onclick="showScreen('dashboard-screen')">← Exit Course</button>
+            <div class="progress-container"><div class="progress-bar" id="course-progress"></div></div>
+            <span id="progress-text" style="font-weight: bold; width: 50px; text-align: right; color: #00e5ff;">0%</span>
+        </div>
+        <div class="workspace">
+            <div class="lesson-panel">
+                <h2 id="module-title">Module Title</h2>
+                <div id="module-content">Content</div>
+                <button class="btn" style="margin-top: auto; padding: 15px;" onclick="initQuiz()">Take Module Quiz to Advance →</button>
+            </div>
+            <div class="compiler-panel">
+                <iframe id="compiler-frame" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="glass-panel quiz-container">
+            <h2 id="quiz-title" style="color: #00e5ff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">Module Assessment</h2>
+            <div id="quiz-questions"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <button class="btn" style="background: transparent; border: 1px solid #ff007a;" onclick="showScreen('workspace-screen')">← Review Lesson</button>
+                <div id="quiz-feedback" style="font-size: 1.2rem; font-weight: bold;"></div>
+                <button class="btn" id="submit-quiz-btn" onclick="submitQuiz()">Submit Answers</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="success-overlay" class="overlay">
+        <div class="success-box">
+            <div class="trophy">🏆</div>
+            <h1 style="color: #00e5ff; font-size: 3rem; margin-bottom: 15px;">Module Passed!</h1>
+            <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 30px;">Excellent work. Your progress has been saved.</p>
+            <button class="btn" style="font-size: 1.2rem; padding: 15px 40px;" onclick="advanceModule()">Continue to Next Stage →</button>
+        </div>
+    </div>
+
+    <div id="certificate-screen" class="screen" style="align-items: center; justify-content: center;">
+        <button class="btn" style="position: absolute; top: 30px; left: 30px;" onclick="showScreen('dashboard-screen')">Back to Hub</button>
+        <div class="certificate">
+            <h1 style="font-family: 'Georgia', serif; font-size: 3.5rem; color: #d4af37; margin-bottom: 10px;">Certificate of Mastery</h1>
+            <p style="font-size: 1.5rem; color: #555;">This proudly certifies that</p>
+            <div class="student-name" id="cert-name">Student Name</div>
+            <p style="font-size: 1.2rem; color: #555; margin-bottom: 10px;">has successfully passed all technical assessments in</p>
+            <h2 id="cert-course-name" style="color: #7a00ff; font-size: 2.2rem; margin-bottom: 20px;">Course Name</h2>
+            <p style="font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Issued by Skill Exchange Programs</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. THE 11-COURSE DATABASE (5x5 FOR C & PYTHON) ---
+        const library = {
+            "c_program": { 
+                icon: "⚙️", name: "Problem Solving in C", compiler: "https://onecompiler.com/c", 
+                modules: [ 
+                    { title: "Module 1: Syntax & Basics", content: "<p>Welcome to C. Let's drill the core syntax.</p><p><strong>Task:</strong> Include stdio.h and write a main function.</p>", 
+                      quiz: [
+                          { q: "Which format specifier is used for an integer?", opts: ["%f", "%d", "%s", "%c"], ans: 1 },
+                          { q: "What does stdio.h stand for?", opts: ["Standard Input Output", "Standard Integer", "Studio Header", "System IO"], ans: 0 },
+                          { q: "Which symbol terminates a C statement?", opts: [":", ";", ".", ","], ans: 1 },
+                          { q: "What is the entry point of a C program?", opts: ["start()", "init()", "main()", "run()"], ans: 2 },
+                          { q: "Which function prints text to the screen?", opts: ["echo", "console.log", "print", "printf"], ans: 3 }
+                      ] 
+                    },
+                    { title: "Module 2: Variables & Types", content: "<p>Manage data accurately using variables.</p><p><strong>Task:</strong> Declare an int and a float.</p>", 
+                      quiz: [
+                          { q: "What is the typical size of an int?", opts: ["1 byte", "2 bytes", "4 bytes", "8 bytes"], ans: 2 },
+                          { q: "How do you declare a character?", opts: ["char c = 'A';", "string c = 'A';", "char c = \"A\";", "chr c = A;"], ans: 0 },
+                          { q: "Which keyword declares a constant?", opts: ["constant", "final", "const", "static"], ans: 2 },
+                          { q: "What format specifier is used for float?", opts: ["%f", "%d", "%c", "%lf"], ans: 0 },
+                          { q: "Which is a valid variable name?", opts: ["1stNumber", "my_var", "my-var", "float"], ans: 1 }
+                      ] 
+                    },
+                    { title: "Module 3: Control Flow", content: "<p>Route data using conditional logic.</p><p><strong>Task:</strong> Write an if/else statement.</p>", 
+                      quiz: [
+                          { q: "Which operator checks for equality?", opts: ["=", "==", "===", "=>"], ans: 1 },
+                          { q: "What does the modulo (%) operator return?", opts: ["Quotient", "Percentage", "Remainder", "Fraction"], ans: 2 },
+                          { q: "Which keyword exits a switch statement?", opts: ["stop", "break", "exit", "continue"], ans: 1 },
+                          { q: "Which is not a loop in C?", opts: ["for", "while", "do-while", "repeat"], ans: 3 },
+                          { q: "What does the && operator mean?", opts: ["Or", "And", "Not", "Bitwise And"], ans: 1 }
+                      ] 
+                    },
+                    { title: "Module 4: Arrays & Strings", content: "<p>Store multiple values in contiguous memory.</p><p><strong>Task:</strong> Create an array of 5 integers.</p>", 
+                      quiz: [
+                          { q: "What is the index of the first element in an array?", opts: ["1", "0", "-1", "A"], ans: 1 },
+                          { q: "How is a C string terminated?", opts: ["With a period", "With a newline", "With a null character (\\0)", "It isn't"], ans: 2 },
+                          { q: "How do you declare an array of 5 integers?", opts: ["int arr(5);", "array arr[5];", "int arr[5];", "int[5] arr;"], ans: 2 },
+                          { q: "What happens if you access an array out of bounds?", opts: ["Error", "Undefined Behavior", "Returns 0", "Resizes array"], ans: 1 },
+                          { q: "Which function calculates the length of a string?", opts: ["strlength()", "strlen()", "length()", "len()"], ans: 1 }
+                      ] 
+                    },
+                    { title: "Module 5: Pointers", content: "<p>Mastering memory management is the ultimate test.</p><p><strong>Task:</strong> Declare a pointer to an integer.</p>", 
+                      quiz: [
+                          { q: "Which operator gets the memory address of a variable?", opts: ["*", "&", "@", "#"], ans: 1 },
+                          { q: "What does a pointer variable store?", opts: ["An integer", "A memory address", "A string", "A boolean"], ans: 1 },
+                          { q: "Which operator is used to dereference a pointer?", opts: ["&", "*", "->", "."], ans: 1 },
+                          { q: "What is a pointer to nothing called?", opts: ["Zero pointer", "Void pointer", "Null pointer", "Empty pointer"], ans: 2 },
+                          { q: "Which keyword is used to dynamically allocate memory?", opts: ["new", "allocate", "malloc", "create"], ans: 2 }
+                      ] 
+                    }
+                ] 
+            },
+            "python_basics": { 
+                icon: "🐍", name: "Python Masterclass", compiler: "https://onecompiler.com/python", 
+                modules: [ 
+                    { title: "Module 1: Syntax & Output", content: "<p>Welcome to Python. Let's learn the basics.</p>", 
+                      quiz: [
+                          { q: "Which function outputs text?", opts: ["echo()", "print()", "log()", "console()"], ans: 1 },
+                          { q: "Do Python statements require a semicolon?", opts: ["Yes", "No", "Only in loops", "Only in functions"], ans: 1 },
+                          { q: "How do you create a single-line comment?", opts: ["//", "/*", "#", "--"], ans: 2 },
+                          { q: "What is the file extension for Python?", opts: [".pt", ".pyth", ".py", ".p"], ans: 2 },
+                          { q: "What defines a block of code in Python?", opts: ["Braces {}", "Parentheses ()", "Indentation", "Brackets []"], ans: 2 }
+                      ] 
+                    },
+                    { title: "Module 2: Variables & Types", content: "<p>Variables are dynamically typed.</p>", 
+                      quiz: [
+                          { q: "How do you assign the value 5 to x?", opts: ["int x = 5;", "x = 5", "let x = 5", "var x = 5"], ans: 1 },
+                          { q: "Which is a valid boolean value in Python?", opts: ["true", "True", "TRUE", "1"], ans: 1 },
+                          { q: "What function checks the type of a variable?", opts: ["typeOf()", "check()", "typeof", "type()"], ans: 3 },
+                          { q: "How do you convert a string '10' to an integer?", opts: ["int('10')", "Integer('10')", "cast('10')", "number('10')"], ans: 0 },
+                          { q: "Which is the correct way to name a variable?", opts: ["my-var", "my_var", "1stVar", "float"], ans: 1 }
+                      ] 
+                    },
+                    { title: "Module 3: Conditionals", content: "<p>Making decisions in code.</p>", 
+                      quiz: [
+                          { q: "Which keyword checks an alternative condition?", opts: ["else if", "elseif", "elif", "otherwise"], ans: 2 },
+                          { q: "What is the output of 10 > 9?", opts: ["True", "False", "Error", "1"], ans: 0 },
+                          { q: "Which operator checks if two values are NOT equal?", opts: ["<>", "!==", "!=", "not=="], ans: 2 },
+                          { q: "What keyword is used for logical AND?", opts: ["&&", "&", "and", "AND"], ans: 2 },
+                          { q: "What keyword is used for logical OR?", opts: ["||", "|", "or", "OR"], ans: 2 }
+                      ] 
+                    },
+                    { title: "Module 4: Lists & Loops", content: "<p>Storing and repeating data.</p>", 
+                      quiz: [
+                          { q: "Which brackets define a list?", opts: ["()", "{}", "[]", "<>"], ans: 2 },
+                          { q: "How do you add an item to a list?", opts: ["list.add()", "list.insert()", "list.push()", "list.append()"], ans: 3 },
+                          { q: "Which loop repeats while a condition is true?", opts: ["for", "repeat", "while", "do"], ans: 2 },
+                          { q: "Which keyword skips the current iteration of a loop?", opts: ["break", "continue", "pass", "skip"], ans: 1 },
+                          { q: "How do you get the length of a list?", opts: ["list.length()", "list.size()", "len(list)", "length(list)"], ans: 2 }
+                      ] 
+                    },
+                    { title: "Module 5: Functions", content: "<p>Reusing blocks of code.</p>", 
+                      quiz: [
+                          { q: "Which keyword defines a function?", opts: ["function", "def", "func", "define"], ans: 1 },
+                          { q: "How do you call a function named my_func?", opts: ["call my_func", "my_func()", "run my_func", "execute my_func"], ans: 1 },
+                          { q: "What keyword sends a value back from a function?", opts: ["send", "output", "yield", "return"], ans: 3 },
+                          { q: "What is a small anonymous function called?", opts: ["Mini func", "Lambda", "Closure", "Subroutine"], ans: 1 },
+                          { q: "How do you pass a parameter 'x' to a function?", opts: ["def func(x):", "def func x:", "function(x)", "def func[x]:"], ans: 0 }
+                      ] 
+                    }
+                ] 
+            },
+            "web_design": { icon: "💻", name: "Web Development", compiler: "https://onecompiler.com/html", modules: [ { title: "Module 1", content: "<p>Build a FitQuest layout using HTML & CSS.</p>", quiz: [{ q: "What tag makes a heading?", opts: ["<head>", "<h1>", "<title>"], ans: 1 }, { q: "HTML stands for?", opts: ["Hyper Text Markup Language", "Home Tool"], ans: 0 }, { q: "CSS stands for?", opts: ["Cascading Style Sheets", "Computer Style"], ans: 0 }, { q: "JS stands for?", opts: ["Java Source", "JavaScript"], ans: 1 }, { q: "Which tag links CSS?", opts: ["<script>", "<link>"], ans: 1 }] } ] },
+            "image_editing": { icon: "🎨", name: "Graphic Design", compiler: "https://www.photopea.com/", modules: [ { title: "Module 1", content: "<p>Use Photopea to master layers.</p>", quiz: [{ q: "Shortcut for Brush?", opts: ["B", "P"], ans: 0 }, { q: "Shortcut for Move?", opts: ["V", "M"], ans: 0 }, { q: "What are layers for?", opts: ["Non-destructive editing", "Speed"], ans: 0 }, { q: "Save transparent format?", opts: ["PNG", "JPEG"], ans: 0 }, { q: "Photopea runs in?", opts: ["Browser", "Console"], ans: 0 }] } ] },
+            "java_basics": { icon: "☕", name: "Java Enterprise", compiler: "https://onecompiler.com/java", modules: [ { title: "Module 1", content: "<p>Learn Object-Oriented programming.</p>", quiz: [{ q: "Entry method in Java?", opts: ["start()", "main()"], ans: 1 }, { q: "Extension for Java?", opts: [".class", ".java"], ans: 1 }, { q: "Keyword for class?", opts: ["class", "struct"], ans: 0 }, { q: "Print command?", opts: ["System.out.print", "echo"], ans: 0 }, { q: "End a statement?", opts: [";", "."], ans: 0 }] } ] },
+            "sql_db": { icon: "🗄️", name: "SQL Database Mastery", compiler: "https://onecompiler.com/postgresql", modules: [ { title: "Module 1", content: "<p>Learn to query databases using SELECT.</p>", quiz: [{ q: "Command to fetch data?", opts: ["GET", "SELECT"], ans: 1 }, { q: "Filter data keyword?", opts: ["WHERE", "FILTER"], ans: 0 }, { q: "Sort data keyword?", opts: ["ORDER BY", "SORT"], ans: 0 }, { q: "Add new data?", opts: ["INSERT", "ADD"], ans: 0 }, { q: "Delete data?", opts: ["REMOVE", "DELETE"], ans: 1 }] } ] },
+            "data_science": { icon: "📊", name: "Data Science Fundamentals", compiler: "https://onecompiler.com/python", modules: [ { title: "Module 1", content: "<p>Analyze datasets using Pandas.</p>", quiz: [{ q: "Python library for data?", opts: ["Pandas", "Django"], ans: 0 }, { q: "Library for math?", opts: ["NumPy", "Flask"], ans: 0 }, { q: "Data structure in Pandas?", opts: ["DataFrame", "List"], ans: 0 }, { q: "Plotting library?", opts: ["Matplotlib", "Requests"], ans: 0 }, { q: "What is CSV?", opts: ["Comma Separated Values", "Code Style"], ans: 0 }] } ] },
+            "cyber_sec": { icon: "🛡️", name: "Cyber Security 101", compiler: "https://onecompiler.com/python", modules: [ { title: "Module 1", content: "<p>Learn encryption and security protocols.</p>", quiz: [{ q: "What does HTTPS ensure?", opts: ["Encryption", "Speed"], ans: 0 }, { q: "What is a firewall?", opts: ["Network Security", "Antivirus"], ans: 0 }, { q: "What is phishing?", opts: ["Social Engineering", "Coding Error"], ans: 0 }, { q: "VPN stands for?", opts: ["Virtual Private Network", "Visual Port"], ans: 0 }, { q: "What is malware?", opts: ["Malicious Software", "Hardware"], ans: 0 }] } ] },
+            "app_dev": { icon: "📱", name: "Mobile App Development", compiler: "https://onecompiler.com/javascript", modules: [ { title: "Module 1", content: "<p>Build apps with React Native.</p>", quiz: [{ q: "Language for React Native?", opts: ["JavaScript", "Java"], ans: 0 }, { q: "React Native makes?", opts: ["Cross-platform apps", "Web only"], ans: 0 }, { q: "UI component?", opts: ["<View>", "<div>"], ans: 0 }, { q: "Text component?", opts: ["<Text>", "<p>"], ans: 0 }, { q: "Creator of React?", opts: ["Meta", "Google"], ans: 0 }] } ] },
+            "ui_ux": { icon: "✨", name: "UI/UX Prototyping", compiler: "https://onecompiler.com/html", modules: [ { title: "Module 1", content: "<p>Design user-friendly interfaces.</p>", quiz: [{ q: "What does UX stand for?", opts: ["User Experience", "User Extra"], ans: 0 }, { q: "What does UI stand for?", opts: ["User Interface", "User Icon"], ans: 0 }, { q: "Popular design tool?", opts: ["Figma", "Excel"], ans: 0 }, { q: "What is wireframing?", opts: ["Basic Layout", "Final Code"], ans: 0 }, { q: "Importance of contrast?", opts: ["Readability", "Speed"], ans: 0 }] } ] },
+            "digital_marketing": { icon: "📈", name: "Digital Marketing & SEO", compiler: "https://onecompiler.com/html", modules: [ { title: "Module 1", content: "<p>Optimize websites for search engines.</p>", quiz: [{ q: "What does SEO mean?", opts: ["Search Engine Optimization", "Site Error Output"], ans: 0 }, { q: "What is CPC?", opts: ["Cost Per Click", "Code Per Cent"], ans: 0 }, { q: "What is a backlink?", opts: ["Link from another site", "Broken link"], ans: 0 }, { q: "Google Analytics tracks?", opts: ["Website Traffic", "Emails"], ans: 0 }, { q: "What is ROI?", opts: ["Return on Investment", "Rate of Interest"], ans: 0 }] } ] }
+        };
+
+        let user = ""; let currentCourseId = ""; let currentModule = 0;
+
+        // --- 2. SEARCH & UI LOGIC ---
+        function showSuggestions() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const dropdown = document.getElementById('search-dropdown');
+            dropdown.innerHTML = ''; 
+            
+            if(!query) { dropdown.style.display = 'none'; return; }
+
+            const courses = Object.keys(library);
+            let matches = courses.filter(c => library[c].name.toLowerCase().includes(query));
+
+            if(matches.length > 0) {
+                matches.forEach(m => {
+                    let div = document.createElement('div');
+                    div.className = 'dropdown-item';
+                    div.innerHTML = `<span class="search-icon">${library[m].icon}</span> <strong>${library[m].name}</strong>`;
+                    div.onclick = () => { startCourse(m); document.getElementById('search-input').value = ''; dropdown.style.display = 'none'; };
+                    dropdown.appendChild(div);
+                });
+                dropdown.style.display = 'block';
+            } else { dropdown.style.display = 'none'; }
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.id !== 'search-input') { document.getElementById('search-dropdown').style.display = 'none'; }
+        });
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(id).classList.add('active-screen');
+        }
+
+        function login() {
+            const input = document.getElementById('username').value.trim();
+            if(!input) { alert("Please enter your name!"); return; }
+            user = input; document.getElementById('display-name').innerText = user;
+            showScreen('dashboard-screen');
+            setTimeout(() => document.getElementById('search-input').focus(), 100);
+        }
+
+        // --- NEW: SKILL SUBMISSION LOGIC ---
+        function submitNewSkill() {
+            const title = document.getElementById('skill-title').value.trim();
+            const cat = document.getElementById('skill-category').value.trim();
+            const desc = document.getElementById('skill-desc').value.trim();
+            
+            if(!title || !cat || !desc) {
+                alert("Please fill out all fields so we can review your course properly!");
+                return;
+            }
+            
+            document.getElementById('skill-success-overlay').style.display = 'flex';
+            
+            // Clear the form for next time
+            document.getElementById('skill-title').value = '';
+            document.getElementById('skill-category').value = '';
+            document.getElementById('skill-desc').value = '';
+        }
+
+        function closeSkillSuccess() {
+            document.getElementById('skill-success-overlay').style.display = 'none';
+            showScreen('dashboard-screen');
+        }
+
+        // --- 3. PLATFORM LOGIC ---
+        function startCourse(id) {
+            currentCourseId = id; currentModule = 0;
+            document.getElementById('compiler-frame').src = library[id].compiler;
+            loadWorkspace(); showScreen('workspace-screen');
+        }
+
+        function loadWorkspace() {
+            const course = library[currentCourseId]; const mod = course.modules[currentModule];
+            document.getElementById('module-title').innerText = mod.title;
+            document.getElementById('module-content').innerHTML = mod.content;
+            let percent = (currentModule / course.modules.length) * 100;
+            document.getElementById('course-progress').style.width = percent + "%";
+            document.getElementById('progress-text').innerText = Math.round(percent) + "%";
+        }
+
+        function initQuiz() {
+            const mod = library[currentCourseId].modules[currentModule];
+            const container = document.getElementById('quiz-questions');
+            container.innerHTML = ""; document.getElementById('quiz-feedback').innerText = "";
+            document.getElementById('submit-quiz-btn').style.display = 'block';
+
+            mod.quiz.forEach((qObj, qIndex) => {
+                let html = `<div class="question-block" id="qblock-${qIndex}">
+                    <h3 style="color: #fff; margin-bottom: 15px;">${qIndex + 1}. ${qObj.q}</h3>`;
+                qObj.opts.forEach((opt, optIndex) => {
+                    html += `<label class="option-label"><input type="radio" name="q${qIndex}" value="${optIndex}"> ${opt}</label>`;
+                });
+                html += `</div>`; container.innerHTML += html;
+            });
+            showScreen('quiz-screen');
+        }
+
+        // --- 4. STRICT GRADING (Score 3 or higher to pass) ---
+        function submitQuiz() {
+            const mod = library[currentCourseId].modules[currentModule];
+            let score = 0; let answeredAll = true;
+
+            mod.quiz.forEach((qObj, qIndex) => {
+                const selected = document.querySelector(`input[name="q${qIndex}"]:checked`);
+                const block = document.getElementById(`qblock-${qIndex}`);
+                if (!selected) { answeredAll = false; } 
+                else {
+                    if (parseInt(selected.value) === qObj.ans) { score++; block.style.borderLeftColor = "#00ff88"; } 
+                    else { block.style.borderLeftColor = "#ff0055"; }
+                }
+            });
+
+            const feedback = document.getElementById('quiz-feedback');
+            if (!answeredAll) { feedback.innerText = "⚠️ Please answer all 5 questions!"; feedback.style.color = "#ffaa00"; return; }
+            
+            // STRICT PASS CONDITION
+            if (score >= 3) { 
+                document.getElementById('success-overlay').style.display = 'flex'; 
+            } else { 
+                feedback.innerText = `You scored ${score}/5. You need at least 3 to pass. Please review and retake the test!`; 
+                feedback.style.color = "#ff0055"; 
+            }
+        }
+
+        function advanceModule() {
+            document.getElementById('success-overlay').style.display = 'none';
+            const course = library[currentCourseId]; currentModule++;
+            
+            if (currentModule >= course.modules.length) {
+                document.getElementById('cert-name').innerText = user;
+                document.getElementById('cert-course-name').innerText = course.name;
+                document.getElementById('course-progress').style.width = "100%";
+                document.getElementById('progress-text').innerText = "100%";
+                showScreen('certificate-screen');
+            } else {
+                loadWorkspace(); showScreen('workspace-screen');
+            }
+        }
+    </script>
+</body>
+</html>

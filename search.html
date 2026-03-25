@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Skills - Skill Exchange</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            z-index: 10;
+        }
+        .search-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        #searchBar {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.2rem;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        /* UPDATED: Styling the cards so they look and act like links */
+        .skill-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none; /* Removes the ugly blue link underline */
+            color: inherit; /* Keeps the text color dark */
+            display: block; /* Makes the entire box clickable, not just the text */
+        }
+        .skill-card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <h1 style="color: white; text-align: center; margin-bottom: 20px; text-shadow: 0 2px 5px rgba(0,0,0,0.2);">Explore Skills</h1>
+        
+        <div class="search-box">
+            <input type="text" id="searchBar" placeholder="🔍 Type a skill to search (e.g., Python, Guitar, Math)...">
+        </div>
+
+        <div class="skill-grid" id="skillGrid">
+            
+            <a href="course.html" class="skill-card">
+                <h3 class="skill-title">Problem solving through programming in C</h3>
+                <p>Master loops, arrays, and core algorithms step-by-step.</p>
+                <p><strong>Offered by:</strong> Rahul</p>
+            </a>
+            
+            <a href="course.html" class="skill-card">
+                <h3 class="skill-title">Python for Beginners</h3>
+                <p>Understand loops, logic, and simple scripts.</p>
+                <p><strong>Offered by:</strong> Priya</p>
+            </a>
+
+            <a href="course.html" class="skill-card">
+                <h3 class="skill-title">Acoustic Guitar Basics</h3>
+                <p>Learn chords and strumming patterns.</p>
+                <p><strong>Offered by:</strong> Arun</p>
+            </a>
+            
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
